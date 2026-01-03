@@ -12,7 +12,8 @@ import {
   LogOut,
   Moon,
   Sun,
-  User
+  User,
+  Image
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,8 @@ const sidebarLinks = [
   { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
   { href: "/admin/customers", label: "Customers", icon: Users },
   { href: "/admin/coupons", label: "Coupons & Offers", icon: TicketPercent },
+  { href: "/admin/banners", label: "Banners", icon: Image },
+  { href: "/admin/categories", label: "Categories", icon: TicketPercent },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
