@@ -24,7 +24,12 @@ export const orderStatusEnum = pgEnum("order_status", [
   "delivered",
   "cancelled",
 ]);
-export const paymentStatusEnum = pgEnum("payment_status", ["pending", "paid", "failed", "refunded"]);
+export const paymentStatusEnum = pgEnum("payment_status", [
+  "pending",
+  "paid",
+  "failed",
+  "refunded",
+]);
 
 // ----------------------------------------------------------------------
 // 2. AUTH & USERS (Better-Auth Compatible)
@@ -156,26 +161,37 @@ export const carts = pgTable("cart", {
   userId: text("user_id"), // Nullable for guest carts
   sessionCartId: text("session_cart_id").notNull(), // A cookie ID for guests
   createdAt: timestamp("created_at").defaultNow(),
+  reminderSent: boolean("reminder_sent").default(false),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const cartItems = pgTable("cart_item", {
   id: serial("id").primaryKey(),
-  cartId: integer("cart_id").references(() => carts.id, { onDelete: "cascade" }),
-  productId: integer("product_id").references(() => products.id, { onDelete: "cascade" }),
+  cartId: integer("cart_id").references(() => carts.id, {
+    onDelete: "cascade",
+  }),
+  productId: integer("product_id").references(() => products.id, {
+    onDelete: "cascade",
+  }),
   quantity: integer("quantity").default(1).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const wishlists = pgTable("wishlist", {
-  id: serial("id").primaryKey(),
-  userId: text("user_id").notNull(), // Replace with UUID if your auth uses it
-  productId: integer("product_id").references(() => products.id, { onDelete: "cascade" }).notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-}, (t) => ({
-  // Ensure a user can't duplicate the same product in wishlist
-  unique: unique().on(t.userId, t.productId),
-}));
+export const wishlists = pgTable(
+  "wishlist",
+  {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(), // Replace with UUID if your auth uses it
+    productId: integer("product_id")
+      .references(() => products.id, { onDelete: "cascade" })
+      .notNull(),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (t) => ({
+    // Ensure a user can't duplicate the same product in wishlist
+    unique: unique().on(t.userId, t.productId),
+  })
+);
 
 export const coupons = pgTable("coupon", {
   id: serial("id").primaryKey(),
@@ -210,11 +226,11 @@ export const announcements = pgTable("announcement", {
   message: text("message").notNull(),
   link: text("link"), // Optional URL to redirect to
   isActive: boolean("is_active").default(false),
-  
+
   // Customization
   backgroundColor: text("background_color").default("#000000"), // Default Black
   textColor: text("text_color").default("#ffffff"), // Default White
-  
+
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -223,7 +239,7 @@ export const addresses = pgTable("address", {
   id: serial("id").primaryKey(),
   userId: text("user_id").notNull(),
   label: text("label").notNull(), // e.g. "Home", "Work"
-  
+
   // Contact Info
   name: text("name").notNull(), // Good to have "Receiver Name"
   mobile: text("mobile").notNull(),
@@ -247,20 +263,25 @@ export const addresses = pgTable("address", {
 
 export const orders = pgTable("order", {
   id: serial("id").primaryKey(),
-  
+
   // Link to User (Change to text("user_id") if you don't have a users table yet)
-  userId: text("user_id").notNull(), 
+  userId: text("user_id").notNull(),
   // If you have a users table: .references(() => users.id, { onDelete: "cascade" }),
 
   // --- STATUS TRACKING ---
   status: orderStatusEnum("status").default("pending").notNull(),
-  paymentStatus: paymentStatusEnum("payment_status").default("pending").notNull(),
+  paymentStatus: paymentStatusEnum("payment_status")
+    .default("pending")
+    .notNull(),
   paymentMethod: text("payment_method").default("cod").notNull(), // 'cod' or 'razorpay'
 
   // --- FINANCIALS ---
   // Store numbers as strings/decimals to avoid floating point math errors
   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
-  discountAmount: decimal("discount_amount", { precision: 10, scale: 2 }).default("0.00"),
+  discountAmount: decimal("discount_amount", {
+    precision: 10,
+    scale: 2,
+  }).default("0.00"),
   finalAmount: decimal("final_amount", { precision: 10, scale: 2 }).notNull(),
 
   // --- RAZORPAY INTEGRATION (Nullable because COD orders won't have these) ---
@@ -270,14 +291,16 @@ export const orders = pgTable("order", {
 
   // --- ADDRESS SNAPSHOT ---
   // We store the full address object so it doesn't change if the user edits their profile later.
-  shippingAddress: jsonb("shipping_address").$type<{
-    name: string;
-    mobile: string;
-    street: string;
-    city: string;
-    state: string;
-    pincode: string;
-  }>().notNull(),
+  shippingAddress: jsonb("shipping_address")
+    .$type<{
+      name: string;
+      mobile: string;
+      street: string;
+      city: string;
+      state: string;
+      pincode: string;
+    }>()
+    .notNull(),
 
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -286,12 +309,16 @@ export const orders = pgTable("order", {
 // 2. Order Items (The actual products in the order)
 export const orderItems = pgTable("order_item", {
   id: serial("id").primaryKey(),
-  orderId: integer("order_id").references(() => orders.id, { onDelete: "cascade" }).notNull(),
-  productId: integer("product_id").references(() => products.id).notNull(),
-  
+  orderId: integer("order_id")
+    .references(() => orders.id, { onDelete: "cascade" })
+    .notNull(),
+  productId: integer("product_id")
+    .references(() => products.id)
+    .notNull(),
+
   // Snapshot of price at time of purchase
   quantity: integer("quantity").notNull(),
-  price: decimal("price", { precision: 10, scale: 2 }).notNull(), 
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
 });
 
 // ----------------------------------------------------------------------

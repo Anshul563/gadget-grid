@@ -2,24 +2,24 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-  LayoutDashboard, 
-  Package, 
-  ShoppingCart, 
-  Users, 
-  TicketPercent, 
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Users,
+  TicketPercent,
   Settings,
   LogOut,
   Moon,
   Sun,
   User,
   Image,
-  MicVocal
+  MicVocal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useSession, signOut } from "@/lib/auth-client"; 
+import { useSession, signOut } from "@/lib/auth-client";
 import { useTheme } from "next-themes";
 import {
   DropdownMenu,
@@ -67,7 +67,9 @@ export function AdminSidebar() {
                   href={link.href}
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary",
-                    isActive ? "bg-muted text-primary" : "text-muted-foreground hover:bg-muted"
+                    isActive
+                      ? "bg-muted text-primary"
+                      : "text-muted-foreground hover:bg-muted"
                   )}
                 >
                   <Icon className="h-4 w-4" />
@@ -80,57 +82,65 @@ export function AdminSidebar() {
 
         {/* Footer Section: User Profile & Actions */}
         <div className="mt-auto border-t p-4 bg-background">
-            {/* User Profile - Click to go to Settings */}
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <div className="flex items-center gap-3 mb-4 cursor-pointer hover:bg-muted p-2 rounded-md transition-colors">
-                        <Avatar className="h-9 w-9 border">
-                            <AvatarImage src={session?.user?.image || ""} />
-                            <AvatarFallback>AD</AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col text-sm">
-                            <span className="font-medium line-clamp-1">{session?.user?.name || "Admin"}</span>
-                            <span className="text-xs text-muted-foreground line-clamp-1">{session?.user?.email}</span>
-                        </div>
-                    </div>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuItem asChild>
-                        <Link href="/admin/settings">My Account</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                        <Link href="/">View Store</Link>
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-            
-            {/* Action Buttons Row */}
-            <div className="flex gap-2">
-                {/* Logout Button */}
-                <Button 
-                    variant="outline" 
-                    className="flex-1 justify-start gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/50"
-                    onClick={() => signOut({
-                        fetchOptions: {
-                            onSuccess: () => window.location.href = "/"
-                        }
-                    })}
-                >
-                    <LogOut className="h-4 w-4" />
-                    Logout
-                </Button>
+          {/* User Profile - Click to go to Settings */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className="flex items-center gap-3 mb-4 cursor-pointer hover:bg-muted p-2 rounded-md transition-colors">
+                <Avatar className="h-9 w-9 border">
+                  <AvatarImage src={session?.user?.image || ""} />
+                  <AvatarFallback>AD</AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col text-sm">
+                  <span className="font-medium line-clamp-1">
+                    {session?.user?.name || "Admin"}
+                  </span>
+                  <span className="text-xs text-muted-foreground line-clamp-1">
+                    {session?.user?.email}
+                  </span>
+                </div>
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem asChild>
+                <Link href="/admin/settings">My Account</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/">View Store</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-                {/* Dark Mode Toggle (Right side of Logout) */}
-                <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                >
-                    <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                    <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                    <span className="sr-only">Toggle theme</span>
-                </Button>
-            </div>
+          {/* Action Buttons Row */}
+          <div className="flex gap-2">
+            {/* Logout Button */}
+            <Button
+              variant="outline"
+              className="flex-1 justify-start gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/50"
+              onClick={() =>
+                signOut({
+                  fetchOptions: {
+                    onSuccess: () => {
+                      window.location.href = "/";
+                    },
+                  },
+                })
+              }
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </Button>
+
+            {/* Dark Mode Toggle (Right side of Logout) */}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            >
+              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              <span className="sr-only">Toggle theme</span>
+            </Button>
+          </div>
         </div>
       </div>
     </div>

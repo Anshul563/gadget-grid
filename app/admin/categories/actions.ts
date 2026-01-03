@@ -19,7 +19,7 @@ function makeSlug(text: string) {
 export async function createCategory(formData: FormData) {
   const name = formData.get("name") as string;
   const description = formData.get("description") as string;
-  
+
   if (!name) return { error: "Name is required" };
 
   await db.insert(categories).values({
@@ -34,9 +34,12 @@ export async function createCategory(formData: FormData) {
 }
 
 // 2. Create Subcategory
-export async function createSubcategory(categoryId: number, formData: FormData) {
+export async function createSubcategory(
+  categoryId: number,
+  formData: FormData
+) {
   const name = formData.get("name") as string;
-  
+
   if (!name) return { error: "Name is required" };
 
   await db.insert(subcategories).values({
@@ -57,9 +60,8 @@ export async function deleteCategory(id: number) {
     // In a real app, you should check for products first.
     await db.delete(categories).where(eq(categories.id, id));
     revalidatePath("/admin/categories");
-    return { success: true };
   } catch (error) {
-    return { error: "Cannot delete category with existing subcategories or products." };
+    console.error("Failed to delete category:", error);
   }
 }
 
@@ -67,5 +69,4 @@ export async function deleteCategory(id: number) {
 export async function deleteSubcategory(id: number) {
   await db.delete(subcategories).where(eq(subcategories.id, id));
   revalidatePath("/admin/categories");
-  return { success: true };
 }

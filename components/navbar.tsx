@@ -44,7 +44,7 @@ export function Navbar() {
   const { data: session } = useSession();
   const pathname = usePathname();
   const { setTheme, theme } = useTheme();
-  
+
   // State for the Location Label
   const [activeCity, setActiveCity] = useState<string | undefined>(undefined);
 
@@ -184,7 +184,7 @@ export function Navbar() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
 
-                {session.user.role === "admin" && (
+                {(session.user as any).role === "admin" && (
                   <>
                     <DropdownMenuItem asChild>
                       <Link href="/admin" className="cursor-pointer">

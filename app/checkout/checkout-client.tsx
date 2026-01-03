@@ -46,6 +46,8 @@ type Address = {
   state: string;
   pincode: string;
   mobile: string;
+  landmark?: string | null;
+  altPhone?: string | null;
   isSelected?: boolean | null;
 };
 

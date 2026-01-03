@@ -1,13 +1,13 @@
 import { schedules } from "@trigger.dev/sdk/v3";
 import { db } from "@/db"; // Ensure this path matches your db export
-import { carts, user } from "@/db/schema";
+import { carts, user, cartItems } from "@/db/schema";
 import { lt, and, eq, isNotNull } from "drizzle-orm";
 import { sendEmail } from "@/lib/email"; // We will create this helper next
 
 export const abandonedCartTask = schedules.task({
   id: "check-abandoned-carts",
   // 1. CRON Expression: Run at minute 0 of every hour (e.g., 1:00, 2:00...)
-  cron: "0 * * * *", 
+  cron: "0 * * * *",
   run: async (payload, { ctx }) => {
     console.log("🕵️ Checking for abandoned carts...");
 
@@ -22,13 +22,11 @@ export const abandonedCartTask = schedules.task({
       })
       .from(carts)
       .innerJoin(user, eq(carts.userId, user.id))
+      .innerJoin(cartItems, eq(carts.id, cartItems.cartId))
       .where(
-        and(
-          lt(carts.updatedAt, oneHourAgo),
-          eq(carts.reminderSent, false),
-          isNotNull(carts.items) 
-        )
-      );
+        and(lt(carts.updatedAt, oneHourAgo), eq(carts.reminderSent, false))
+      )
+      .groupBy(carts.id, user.email, user.name);
 
     console.log(`Found ${abandonedCarts.length} abandoned carts.`);
 
@@ -47,7 +45,7 @@ export const abandonedCartTask = schedules.task({
           .update(carts)
           .set({ reminderSent: true })
           .where(eq(carts.id, cart.cartId));
-          
+
         console.log(`✅ Email sent to ${cart.userEmail}`);
       } catch (err) {
         console.error(`❌ Failed to send to ${cart.userEmail}`, err);
