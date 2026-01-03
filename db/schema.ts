@@ -12,6 +12,7 @@ import {
   serial,
   text,
   timestamp,
+  unique,
 } from "drizzle-orm/pg-core";
 
 // ----------------------------------------------------------------------
@@ -151,17 +152,29 @@ export const products = pgTable("product", {
 
 export const carts = pgTable("cart", {
   id: serial("id").primaryKey(),
-  userId: text("user_id").references(() => user.id), // Can be null for guest carts (optional)
-
-  // Storing items as JSON is faster for simple carts.
-  // Structure: [{ productId: 1, quantity: 2, priceAtAdd: 999 }]
-  items: jsonb("items")
-    .$type<{ productId: number; quantity: number; price: number }[]>()
-    .default([]),
-
+  userId: text("user_id"), // Nullable for guest carts
+  sessionCartId: text("session_cart_id").notNull(), // A cookie ID for guests
+  createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-  reminderSent: boolean("reminder_sent").default(false), // For Abandoned Cart Microservice
 });
+
+export const cartItems = pgTable("cart_item", {
+  id: serial("id").primaryKey(),
+  cartId: integer("cart_id").references(() => carts.id, { onDelete: "cascade" }),
+  productId: integer("product_id").references(() => products.id, { onDelete: "cascade" }),
+  quantity: integer("quantity").default(1).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const wishlists = pgTable("wishlist", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(), // Replace with UUID if your auth uses it
+  productId: integer("product_id").references(() => products.id, { onDelete: "cascade" }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => ({
+  // Ensure a user can't duplicate the same product in wishlist
+  unique: unique().on(t.userId, t.productId),
+}));
 
 export const coupons = pgTable("coupon", {
   id: serial("id").primaryKey(),
@@ -187,6 +200,42 @@ export const banners = pgTable("banner", {
   sortOrder: integer("sort_order").default(0), // To control display order
   startDate: timestamp("start_date"), // Schedule start
   endDate: timestamp("end_date"), // Schedule end
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const announcements = pgTable("announcement", {
+  id: serial("id").primaryKey(),
+  message: text("message").notNull(),
+  link: text("link"), // Optional URL to redirect to
+  isActive: boolean("is_active").default(false),
+  
+  // Customization
+  backgroundColor: text("background_color").default("#000000"), // Default Black
+  textColor: text("text_color").default("#ffffff"), // Default White
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const addresses = pgTable("address", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  label: text("label").notNull(), // e.g. "Home", "Work"
+  
+  // Contact Info
+  name: text("name").notNull(), // Good to have "Receiver Name"
+  mobile: text("mobile").notNull(),
+  altPhone: text("alt_phone"),
+
+  // Address Info
+  address: text("address").notNull(), // Street/Sector/Building
+  landmark: text("landmark"),
+  city: text("city").notNull(),
+  state: text("state").notNull(),
+  pincode: text("pincode").notNull(), // Renamed from zip
+
+  isSelected: boolean("is_selected").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

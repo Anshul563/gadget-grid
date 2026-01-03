@@ -48,7 +48,6 @@ function transformProduct(item: typeof products.$inferSelect) {
     images: allImages, // For Product Page Gallery (string[])
     rating: 4.5, // Default hardcoded for now
     salesCount: 0, // Default hardcoded for now
-    storeName: "Official Store",
     description: item.description,
   };
 }
