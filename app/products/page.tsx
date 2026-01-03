@@ -62,7 +62,7 @@ export default async function ProductsPage({ searchParams }: Props) {
 
       <div className="flex flex-col md:flex-row gap-8">
         {/* Desktop Sidebar */}
-        <aside className="hidden md:block w-64 flex-shrink-0">
+        <aside className="hidden md:block w-64 shrink-0">
           <div className="sticky top-20">
             <FilterSidebar />
           </div>
@@ -73,7 +73,7 @@ export default async function ProductsPage({ searchParams }: Props) {
           {products.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {products.map((product) => (
-                <div key={product.id} className="h-full">
+                <div key={product.id} className="">
                   <ProductCard data={product} />
                 </div>
               ))}

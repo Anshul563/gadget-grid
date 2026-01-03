@@ -28,10 +28,14 @@ function transformProduct(item: typeof products.$inferSelect) {
   }
 
   // Handle Images
-  const primaryImage =
+  // Ensure we get an array, even if DB returns null
+  const allImages =
     item.images && Array.isArray(item.images) && item.images.length > 0
-      ? item.images[0]
-      : "/images/placeholder.png";
+      ? item.images
+      : ["/images/placeholder.png"];
+
+  // Primary image for cards is the first one
+  const primaryImage = allImages[0];
 
   return {
     id: item.id,
@@ -40,7 +44,8 @@ function transformProduct(item: typeof products.$inferSelect) {
     price: currentPrice,
     oldPrice: oldPrice,
     discount: discount,
-    image: primaryImage,
+    image: primaryImage, // For Product Card (string)
+    images: allImages, // For Product Page Gallery (string[])
     rating: 4.5, // Default hardcoded for now
     salesCount: 0, // Default hardcoded for now
     storeName: "Official Store",
@@ -54,6 +59,7 @@ export async function getNewArrivals() {
   const data = await db
     .select()
     .from(products)
+    // Filter: Active AND marked as "New Arrival"
     .where(and(eq(products.isActive, true), eq(products.isNewArrival, true)))
     .orderBy(desc(products.createdAt))
     .limit(10);
@@ -79,22 +85,23 @@ export async function getAllProducts(params: ProductFilterParams) {
   }
 
   // Determine Sorting Order
-  // ✅ CORRECT APPROACH
+  let orderBySQL: SQL<unknown> | undefined;
 
-  // 1. Determine the Sort Order object first
-  let orderBySQL: SQL<unknown>;
   if (params.sort === "price_asc") {
     orderBySQL = asc(products.price);
+  } else if (params.sort === "price_desc") {
+    orderBySQL = desc(products.price);
   } else {
-    orderBySQL = desc(products.createdAt);
+    orderBySQL = desc(products.createdAt); // Default: Newest
   }
 
-  // 2. Pass it into the query chain
+  // Pass it into the query chain
   const data = await db
     .select()
     .from(products)
     .where(and(...conditions))
-    .orderBy(orderBySQL); // Applied correctly here
+    .orderBy(orderBySQL);
+
   return data.map(transformProduct);
 }
 
@@ -112,7 +119,6 @@ export async function getProductBySlug(slug: string) {
 
 export async function getRelatedProducts(currentProductId: number) {
   // Simple "Related" logic: Fetch 4 active products that aren't the current one
-  // In a real app, you'd filter by categoryId or tags
   const data = await db
     .select()
     .from(products)
