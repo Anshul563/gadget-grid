@@ -24,6 +24,7 @@ export const orderStatusEnum = pgEnum("order_status", [
   "delivered",
   "cancelled",
 ]);
+export const paymentStatusEnum = pgEnum("payment_status", ["pending", "paid", "failed", "refunded"]);
 
 // ----------------------------------------------------------------------
 // 2. AUTH & USERS (Better-Auth Compatible)
@@ -246,41 +247,51 @@ export const addresses = pgTable("address", {
 
 export const orders = pgTable("order", {
   id: serial("id").primaryKey(),
-  userId: text("user_id").references(() => user.id),
-  status: orderStatusEnum("status").default("pending"),
+  
+  // Link to User (Change to text("user_id") if you don't have a users table yet)
+  userId: text("user_id").notNull(), 
+  // If you have a users table: .references(() => users.id, { onDelete: "cascade" }),
 
+  // --- STATUS TRACKING ---
+  status: orderStatusEnum("status").default("pending").notNull(),
+  paymentStatus: paymentStatusEnum("payment_status").default("pending").notNull(),
+  paymentMethod: text("payment_method").default("cod").notNull(), // 'cod' or 'razorpay'
+
+  // --- FINANCIALS ---
+  // Store numbers as strings/decimals to avoid floating point math errors
   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
-  discountAmount: decimal("discount_amount", {
-    precision: 10,
-    scale: 2,
-  }).default("0"),
+  discountAmount: decimal("discount_amount", { precision: 10, scale: 2 }).default("0.00"),
   finalAmount: decimal("final_amount", { precision: 10, scale: 2 }).notNull(),
 
-  paymentId: text("razorpay_payment_id"),
-  orderId: text("razorpay_order_id"),
+  // --- RAZORPAY INTEGRATION (Nullable because COD orders won't have these) ---
+  razorpayPaymentId: text("razorpay_payment_id"),
+  razorpayOrderId: text("razorpay_order_id"),
+  razorpaySignature: text("razorpay_signature"),
 
+  // --- ADDRESS SNAPSHOT ---
+  // We store the full address object so it doesn't change if the user edits their profile later.
   shippingAddress: jsonb("shipping_address").$type<{
+    name: string;
+    mobile: string;
     street: string;
     city: string;
     state: string;
-    zip: string;
-    phone: string;
-  }>(),
+    pincode: string;
+  }>().notNull(),
 
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Separate table for Order Items (Better for analytics than JSON)
+// 2. Order Items (The actual products in the order)
 export const orderItems = pgTable("order_item", {
   id: serial("id").primaryKey(),
-  orderId: integer("order_id")
-    .references(() => orders.id)
-    .notNull(),
-  productId: integer("product_id")
-    .references(() => products.id)
-    .notNull(),
+  orderId: integer("order_id").references(() => orders.id, { onDelete: "cascade" }).notNull(),
+  productId: integer("product_id").references(() => products.id).notNull(),
+  
+  // Snapshot of price at time of purchase
   quantity: integer("quantity").notNull(),
-  price: decimal("price", { precision: 10, scale: 2 }).notNull(), // Price at time of purchase
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(), 
 });
 
 // ----------------------------------------------------------------------

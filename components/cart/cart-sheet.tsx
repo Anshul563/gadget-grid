@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Trash2, Loader2, Plus, Minus } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -41,8 +47,12 @@ export function CartSheet() {
     return sum + price * item.quantity;
   }, 0);
 
-  const formatPrice = (p: number) => 
-    new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(p);
+  const formatPrice = (p: number) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(p);
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -50,7 +60,7 @@ export function CartSheet() {
         <Button variant="ghost" size="icon" className="relative">
           <ShoppingCart className="h-6 w-6" />
           {items.length > 0 && (
-            <span className="absolute right-1 top-1 flex h-3 w-3 items-center justify-center rounded-full bg-primary text-[8px] text-primary-foreground">
+            <span className="absolute right-1 top-1 flex h-3 w-3 items-center justify-center rounded-full bg-primary text-[8px] text-primary-foreground sm:hidden">
               {items.length}
             </span>
           )}
@@ -60,7 +70,7 @@ export function CartSheet() {
         <SheetHeader className="px-1">
           <SheetTitle>My Cart ({items.length})</SheetTitle>
         </SheetHeader>
-        
+
         {isLoading ? (
           <div className="flex h-full items-center justify-center">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -68,8 +78,12 @@ export function CartSheet() {
         ) : items.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center space-y-2">
             <ShoppingCart className="h-12 w-12 text-muted-foreground/50" />
-            <span className="text-lg font-medium text-muted-foreground">Your cart is empty</span>
-            <Button variant="link" onClick={() => setIsOpen(false)}>Continue Shopping</Button>
+            <span className="text-lg font-medium text-muted-foreground">
+              Your cart is empty
+            </span>
+            <Button variant="link" onClick={() => setIsOpen(false)}>
+              Continue Shopping
+            </Button>
           </div>
         ) : (
           <>
@@ -78,12 +92,13 @@ export function CartSheet() {
                 {items.map((item) => (
                   <div key={item.id} className="flex gap-4">
                     <div className="relative h-20 w-20 overflow-hidden rounded-md border bg-muted/50">
-                       {/* Handle Image Array safely */}
+                      {/* Handle Image Array safely */}
                       <Image
                         src={
-                           Array.isArray(item.product.images) && item.product.images[0] 
-                           ? item.product.images[0] 
-                           : "/images/placeholder.png"
+                          Array.isArray(item.product.images) &&
+                          item.product.images[0]
+                            ? item.product.images[0]
+                            : "/images/placeholder.png"
                         }
                         alt={item.product.name}
                         fill
@@ -92,14 +107,22 @@ export function CartSheet() {
                     </div>
                     <div className="flex flex-1 flex-col justify-between">
                       <div className="grid gap-1">
-                        <h3 className="font-medium leading-none line-clamp-1">{item.product.name}</h3>
+                        <h3 className="font-medium leading-none line-clamp-1">
+                          {item.product.name}
+                        </h3>
                         <p className="text-sm text-muted-foreground">
-                          {formatPrice(parseFloat(item.product.salePrice || item.product.price))}
+                          {formatPrice(
+                            parseFloat(
+                              item.product.salePrice || item.product.price
+                            )
+                          )}
                         </p>
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-sm">
-                           <span className="text-muted-foreground">Qty: {item.quantity}</span>
+                          <span className="text-muted-foreground">
+                            Qty: {item.quantity}
+                          </span>
                         </div>
                         <Button
                           variant="ghost"
@@ -121,7 +144,13 @@ export function CartSheet() {
                 <span>Total</span>
                 <span>{formatPrice(total)}</span>
               </div>
-              <Button className="w-full" size="lg">Checkout</Button>
+              <SheetTrigger asChild>
+                <a href="/checkout" onClick={() => setIsOpen(false)}>
+                  <Button className="w-full" size="lg">
+                    Checkout
+                  </Button>
+                </a>
+              </SheetTrigger>
             </div>
           </>
         )}
